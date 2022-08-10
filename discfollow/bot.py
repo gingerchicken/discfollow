@@ -55,6 +55,9 @@ class FollowClient(discord.Client):
     async def on_voice_state_update(self, member: discord.Member, before, after):
         # Make sure that the member is not the bot itself
         if member.id == self.user.id: return
+
+        # Make sure it is a channel change
+        if before.channel == after.channel: return
         
         # Get the target
         target_user = await self.get_target()
