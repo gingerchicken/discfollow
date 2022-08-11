@@ -6,7 +6,7 @@
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT">
     <br>
     <img src="https://img.shields.io/badge/-Python-3776AB?style=flat&logo=Python&logoColor=white" />
-    <ing src="https://img.shields.io/badge/-Docker-3776AB?style=flat&logo=Docker&logoColor=white" />
+    <img src="https://img.shields.io/badge/-Docker-3776AB?style=flat&logo=Docker&logoColor=white" />
     <p><i>Automatically follow a specific user around every voice channel that they join</i></p>
 </div>
 
