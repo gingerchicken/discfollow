@@ -103,18 +103,17 @@ class FollowClient(discord.Client):
 
             await self.__join_wait()
 
-            # Disconnect it from the voice channel
-            await vc.guild.voice_client.disconnect()
-            # TODO use move_to() instead of disconnect()
+            # Move to the voice channel
+            await vc.guild.voice_client.move_to(vc)
         else:
             self.log('Connecting to', vc, 'in', vc.guild, f'(in {self.join_delay} seconds)', '...')
 
             await self.__join_wait()
 
-        try:
-            await vc.connect()
-        except discord.ClientException:
-            self.log('Already connected to', vc)
+            try:
+                await vc.connect()
+            except discord.ClientException:
+                self.log('Already connected to', vc)
 
     async def on_voice_state_update(self, member: discord.Member, before, after):
         """Handles VC state changes"""
