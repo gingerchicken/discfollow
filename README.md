@@ -42,6 +42,8 @@ $ docker run \
     -e TARGET_ID=123456789012345678 \
     -e JOIN_DELAY=5 \
     -e LEAVE_DELAY=3 \
+    -e PLAY_AUDIO=true \
+    -v /path/to/audio.mp3:/app/audio \
     discfollow
 ```
 
@@ -52,3 +54,4 @@ $ docker run \
 | `TARGET_ID` | The Discord user ID of the user you want to follow, you can find those [here](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-). |
 | `JOIN_DELAY` | Delay (in seconds) before joining a chat |
 | `LEAVE_DELAY` | Delay (in seconds) before leaving a chat |
+| `PLAY_AUDIO` | Whether or not to play audio |
