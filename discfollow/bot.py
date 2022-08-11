@@ -149,13 +149,6 @@ class FollowClient(discord.Client):
         # Connect to the target channel
         await self.__connect(target_chan)
     
-    async def on_exit(self):
-        self.log('Disconnecting from all voice channels...')
-        await self.__disconnect_all()
-
-        self.log('Closing...')
-        await self.close()
-    
     @tasks.loop(seconds=15)
     async def search_for_target(self):
         """Looks for the target in all Discord servers"""
