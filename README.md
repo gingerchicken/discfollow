@@ -11,7 +11,7 @@
 </div>
 
 ## Disclaimer
-> This bot is configured as a self-bot and is against the [Discord ToS](https://support.discord.com/hc/en-us/articles/115002192352-Automated-user-accounts-self-bots-).
+> This bot is configured as a self-bot and is against the [Discord ToS](https://support.discord.com/hc/en-us/articles/115002192352-Automated-user-accounts-self-bots-), use at your own risk.
 
 ## Usage
 
