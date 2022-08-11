@@ -150,7 +150,7 @@ class FollowClient(discord.Client):
         self.log('Closing...')
         await self.close()
     
-    @tasks.loop(seconds=1)
+    @tasks.loop(seconds=15)
     async def search_for_target(self):
         """Looks for the target in all Discord servers"""
 
