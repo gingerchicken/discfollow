@@ -52,10 +52,7 @@ class FollowClient(discord.Client):
 
         self.log('Disconnecting from', vc, 'in', vc.guild, f'(in {self.leave_delay} seconds)', '...')
 
-        # Wait the leave delay
-        self.__is_disconncting = True
-        await asyncio.sleep(self.leave_delay)
-        self.__is_disconncting = False
+        await self.__leave_wait()
 
         # Make sure that we have a client to disconnect from
         if vc.guild.voice_client is None: return
@@ -63,27 +60,35 @@ class FollowClient(discord.Client):
         # Disconnect the voice channel
         await vc.guild.voice_client.disconnect()
 
+    async def __join_wait(self):
+        if self.join_delay == 0: return
+
+        self.__is_connecting = True
+        await asyncio.sleep(self.join_delay)
+        self.__is_connecting = False
+
+    async def __leave_wait(self):
+        if self.leave_delay == 0: return
+
+        self.__is_disconncting = True
+        await asyncio.sleep(self.leave_delay)
+        self.__is_disconncting = False
+
     async def __connect(self, vc):
         if self.__is_connecting: return
-
-        async def wait():
-            # Wait the join delay
-            self.__is_connecting = True
-            await asyncio.sleep(self.join_delay)
-            self.__is_connecting = False
 
         # Check if we have a client in that guild
         if vc.guild.voice_client is not None:
             self.log('Moving to', vc, '(from ' + str(vc.guild.voice_client.channel) + ')', 'in', vc.guild, f'(in {self.join_delay} seconds)', '...')
 
-            await wait()
+            await self.__join_wait()
 
             # Disconnect it from the voice channel
             await vc.guild.voice_client.disconnect()
         else:
             self.log('Connecting to', vc, 'in', vc.guild, f'(in {self.join_delay} seconds)', '...')
-            
-            await wait()
+
+            await self.__join_wait()
 
         try:
             await vc.connect()
