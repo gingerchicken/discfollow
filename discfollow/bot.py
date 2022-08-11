@@ -39,22 +39,6 @@ class FollowClient(discord.Client):
     def log(self, *args, **kwargs):
         print(datetime.datetime.now(), '|', *args, flush=True, **kwargs)
 
-    async def __guild_dc(self, guild):
-        # Get all the voice channels in the guild
-        for voice_channel in guild.voice_channels:
-            # Attempt to connect to the voice channel
-            try:
-                await voice_channel.connect()
-
-                # Disconnect the voice channel
-                await self.__dc(voice_channel)
-
-                # Success!
-                break
-            except discord.ClientException:
-                continue
-        
-
     async def __dc(self, vc):
         self.log('Disconnecting from', vc, 'in', vc.guild, '...')
 
