@@ -1,6 +1,8 @@
 import discord
 from discord.ext import tasks
+
 import datetime
+import asyncio
 
 class FollowClient(discord.Client):
     def __init__(self, target_id):
@@ -32,25 +34,50 @@ class FollowClient(discord.Client):
 
     async def __disconnect_all(self):
         for vc in self.voice_clients:
-            await self.__dc(vc)
+            await vc.disconnect()
     
     def log(self, *args, **kwargs):
         print(datetime.datetime.now(), '|', *args, flush=True, **kwargs)
 
-    async def __dc(self, vc):
-        self.log('Disconnecting from', vc.channel, 'in', vc.guild, '...')
-        await vc.disconnect()
-    
-    async def __connect(self, vc):
-        # Disconnect all
-        await self.__disconnect_all()
+    async def __guild_dc(self, guild):
+        # Get all the voice channels in the guild
+        for voice_channel in guild.voice_channels:
+            # Attempt to connect to the voice channel
+            try:
+                await voice_channel.connect()
 
-        self.log('Connecting to', vc, 'in', vc.guild, '...')
+                # Disconnect the voice channel
+                await self.__dc(voice_channel)
+
+                # Success!
+                break
+            except discord.ClientException:
+                continue
+        
+
+    async def __dc(self, vc):
+        self.log('Disconnecting from', vc, 'in', vc.guild, '...')
+
+        # Make sure that we have a client to disconnect from
+        if vc.guild.voice_client is None: return
+
+        # Disconnect the voice channel
+        await vc.guild.voice_client.disconnect()
+
+    async def __connect(self, vc):
+        # Check if we have a client in that guild
+        if vc.guild.voice_client is not None:
+            self.log('Moving to', vc, '(from ' + str(vc.guild.voice_client.channel) + ')', 'in', vc.guild, '...')
+
+            # Disconnect it from the voice channel
+            await vc.guild.voice_client.disconnect()
+        else:
+            self.log('Connecting to', vc, 'in', vc.guild, '...')
 
         try:
             await vc.connect()
         except discord.ClientException:
-            self.log('Already connected to', vc, '...')
+            self.log('Already connected to', vc)
 
     async def on_voice_state_update(self, member: discord.Member, before, after):
         # Make sure that the member is not the bot itself
@@ -62,41 +89,31 @@ class FollowClient(discord.Client):
         # Get the target
         target_user = await self.get_target()
 
-        # Get the target channel
-        target = after.channel
-
         # Make sure that the member is the target
         if member != target_user: return
 
-        # Find out if the user disconnected from a voice channel
-        has_disconnected = target is None
-        if has_disconnected:
-            self.log('Target', target_user, 'has left', before.channel, '!')
+        # Get the target channel
+        target_chan = after.channel if after.channel is not None else before.channel
 
-            # Disconnect from the voice channel
-            await self.__disconnect_all()
+        # Get the target channel's guild
+        target_guild = target_chan.guild
+
+        # Check if it was a disconnect
+        if after.channel is None:
+            # Get the before channel's guild as the target guild
+            target_guild = before.channel.guild
+
+            # Disconnect the voice channel
+            await self.__dc(before.channel)
 
             return
 
-        # Say where they joined
-        self.log('Target', target_user, 'has joined', target, 'in', target.guild, '!')
-
-        # Disconnect from the before voice channel
-        # Get all the members in the before voice channel
-        if before.channel is not None:
-            await self.__disconnect_all()
-
-        # Connect to the voice channel
-        await self.__connect(after.channel)
+        # Connect to the target channel
+        await self.__connect(target_chan)
     
     async def on_exit(self):
-        self.log('Exiting...')
-
         self.log('Disconnecting from all voice channels...')
         await self.__disconnect_all()
-
-        self.log('Logging out...')
-        await self.logout()
 
         self.log('Closing...')
         await self.close()
@@ -109,41 +126,17 @@ class FollowClient(discord.Client):
         # Get all out guilds
         guilds = self.guilds
 
-        found_target = False
-
-        # Check if we are already connected to a channel with the target
-        connected = len(self.voice_clients) > 0
-
-        # Find the target in any of the guilds
         for guild in guilds:
-            # Get all the voice channels in the guild
-            voice_channels = guild.voice_channels
+            # Get the voice channels in the guild
+            for voice_channel in guild.voice_channels:
+                # Check if the voice channel contains our target
+                if target_user not in voice_channel.members: continue
 
-            # Find the target in any of the voice channels
-            for voice_channel in voice_channels:
-                # Get all the members in the voice channel
-                members = voice_channel.members
+                # Check if we are already connected to the voice channel
+                if self.user in voice_channel.members: continue
 
-                # Find the target in any of the members
-                for member in members:
-                    # self.log('Searching', member, 'for', target_user, '...')
+                # Connect to the voice channel
+                await self.__connect(voice_channel)
 
-                    # Check if the member is the target
-                    if member != target_user: continue
-
-                    # Say we found the target
-                    found_target = True
-
-                    # Connect to the voice channel if we are not already connected
-                    if connected: break
-                    
-                    # Say where we found the target
-                    self.log('Found target', target_user, 'in', voice_channel, 'in', guild, '!')
-
-                    await self.__connect(voice_channel)
-
-                    break
-
-        if not found_target:
-            # Disconnect from all voice channels
-            await self.__disconnect_all()
+                # Next guild
+                break
