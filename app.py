@@ -1,4 +1,5 @@
 import os
+import asyncio
 
 from discfollow.bot import FollowClient
 
@@ -13,3 +14,6 @@ bot = FollowClient(target_id)
 
 # Login to Discord
 bot.run(token)
+
+# Make sure to close the bot in an async way
+asyncio.run(bot.on_exit())
