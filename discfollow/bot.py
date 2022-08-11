@@ -20,6 +20,8 @@ class FollowClient(discord.Client):
         super().__init__()
 
     async def get_target(self):
+        """Gets the target as a Discord user"""
+
         return self.get_user(int(self.target_id))
 
     async def on_ready(self):
@@ -41,13 +43,19 @@ class FollowClient(discord.Client):
         self.search_for_target.start()
 
     async def __disconnect_all(self):
+        """Disconnects all voice clients"""
+
         for vc in self.voice_clients:
             await vc.disconnect()
     
     def log(self, *args, **kwargs):
+        """Logs a message to the console in a pretty way"""
+
         print(datetime.datetime.now(), '|', *args, flush=True, **kwargs)
 
     async def __dc(self, vc):
+        """Disconnects from a VC"""
+
         if self.__is_disconncting: return
 
         self.log('Disconnecting from', vc, 'in', vc.guild, f'(in {self.leave_delay} seconds)', '...')
@@ -61,6 +69,8 @@ class FollowClient(discord.Client):
         await vc.guild.voice_client.disconnect()
 
     async def __join_wait(self):
+        """Waits the specified amount of seconds before joining"""
+
         if self.join_delay == 0: return
 
         self.__is_connecting = True
@@ -68,6 +78,8 @@ class FollowClient(discord.Client):
         self.__is_connecting = False
 
     async def __leave_wait(self):
+        """Waits the specified amount of seconds before leaving"""
+
         if self.leave_delay == 0: return
 
         self.__is_disconncting = True
@@ -75,6 +87,8 @@ class FollowClient(discord.Client):
         self.__is_disconncting = False
 
     async def __connect(self, vc):
+        """Connects/moves to a VC"""
+
         if self.__is_connecting: return
 
         # Check if we have a client in that guild
@@ -96,6 +110,8 @@ class FollowClient(discord.Client):
             self.log('Already connected to', vc)
 
     async def on_voice_state_update(self, member: discord.Member, before, after):
+        """Handles VC state changes"""
+
         # Make sure that the member is not the bot itself
         if member.id == self.user.id: return
 
@@ -136,6 +152,8 @@ class FollowClient(discord.Client):
     
     @tasks.loop(seconds=1)
     async def search_for_target(self):
+        """Looks for the target in all Discord servers"""
+
         # Get the target
         target_user = await self.get_target()
 
