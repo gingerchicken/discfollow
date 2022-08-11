@@ -8,12 +8,14 @@ TOKEN       = str(os.environ['TOKEN'])
 TARGET_ID   = int(os.environ['TARGET_ID'])
 JOIN_DELAY  = int(os.environ['JOIN_DELAY'])
 LEAVE_DELAY = int(os.environ['LEAVE_DELAY'])
+PLAY_AUDIO  = os.environ['PLAY_AUDIO'].lower() == 'true'
 
 # Create the bot
 bot = FollowClient(
     target_id=TARGET_ID,
     join_delay=JOIN_DELAY,
-    leave_delay=LEAVE_DELAY
+    leave_delay=LEAVE_DELAY,
+    play_audio=PLAY_AUDIO
 )
 
 # Login to Discord
