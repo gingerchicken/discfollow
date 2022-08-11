@@ -8,13 +8,16 @@ class FollowClient(discord.Client):
     __is_connecting   = False
     __is_disconncting = False
 
-    def __init__(self, target_id, join_delay : int = 0, leave_delay : int = 0):
+    def __init__(self, target_id, join_delay : int = 0, leave_delay : int = 0, play_audio : bool = False):
         # Specify the target ID
         self.target_id  = target_id
 
         # Delays
         self.join_delay = join_delay
         self.leave_delay = leave_delay
+
+        # Play audio
+        self.play_audio = play_audio
 
         # Super
         super().__init__()
@@ -41,6 +44,9 @@ class FollowClient(discord.Client):
 
         # Start looking
         self.search_for_target.start()
+
+        # Start playing music
+        self.play_music.start()
 
     async def __disconnect_all(self):
         """Disconnects all voice clients"""
@@ -99,6 +105,7 @@ class FollowClient(discord.Client):
 
             # Disconnect it from the voice channel
             await vc.guild.voice_client.disconnect()
+            # TODO use move_to() instead of disconnect()
         else:
             self.log('Connecting to', vc, 'in', vc.guild, f'(in {self.join_delay} seconds)', '...')
 
@@ -174,3 +181,18 @@ class FollowClient(discord.Client):
 
                 # Next guild
                 break
+    
+    @tasks.loop(seconds=1)
+    async def play_music(self):
+        """Plays music in all voice channels"""
+        if not self.play_audio: return
+
+        for client in self.voice_clients:
+            # Make sure the client is connected
+            if not client.is_connected(): continue
+
+            # Make sure that the client is not playing anything
+            if client.is_playing(): continue
+
+            # Play music in the voice channel
+            client.play(discord.FFmpegPCMAudio('audio'))
